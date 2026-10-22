@@ -30,6 +30,27 @@ export interface EnrolInput {
  * Returns the student's new credit total.
  */
 export async function enrolInTypeScript(input: EnrolInput): Promise<number> {
-  // TODO
-  throw new Error('not implemented');
+
+  const {rows} = await pool.query(
+    ` BEGIN
+        SAVEPOINT safe;
+
+        INSERT INTO takes (id, course_id, sec_id, semester, year, grade)
+        VALUES ($1, $2, $3, $4, $5, NULL)
+
+        UPDATE student SET tot_cred = tot_cred + <the course credits>
+        WHERE id = $1
+
+        SELECT tot_cred
+        FROM student
+        WHERE id = $1
+
+      EXCEPTION
+        WHEN OTHERS THEN
+          ROLLBACK TO safe
+        RAISE;
+      END;
+    `, [input["studentId"], input["courseId"], input["secId"], input["semester"], input["year"],], 
+  );
+  return rows[0];
 }

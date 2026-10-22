@@ -68,6 +68,11 @@ export async function removeAndCheckBroken(id: string): Promise<boolean> {
   const still = await findStudent(id);
   return still !== undefined;
 }
+/*
+Explanation:
+
+*/
+
 
 /** The same thing, correct: false when the student is really gone. */
 export async function removeAndCheck(id: string): Promise<boolean> {
