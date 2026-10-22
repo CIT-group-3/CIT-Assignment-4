@@ -88,7 +88,13 @@ export async function coursesFor(studentId: string): Promise<CourseRow[]> {
  * look at the type of what you get.
  */
 export async function studentsPerDepartment(): Promise<DeptCount[]> {
-  // TODO
+  const { rows } = await pool.query<DeptCount>(
+    `SELECT dept_name AS "deptName", count(*)::int AS "students"
+     FROM student
+    GROUP BY dept_name
+    ORDER BY dept_name`,
+  );
+  return rows;
   throw new Error("not implemented");
 }
 
