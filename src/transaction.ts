@@ -30,27 +30,64 @@ export interface EnrolInput {
  * Returns the student's new credit total.
  */
 export async function enrolInTypeScript(input: EnrolInput): Promise<number> {
+  const client = await pool.connect();
 
-  const {rows} = await pool.query(
-    ` BEGIN
-        SAVEPOINT safe;
+  try {
+    // Start a transaction on this specific connection.
+    await client.query("BEGIN");
 
-        INSERT INTO takes (id, course_id, sec_id, semester, year, grade)
-        VALUES ($1, $2, $3, $4, $5, NULL)
+    // Find how many credits the course is worth.
+    const { rows: courseRows } = await client.query<{ credits: number }>(
+      `SELECT credits
+       FROM course
+       WHERE course_id = $1`,
+      [input.courseId],
+    );
 
-        UPDATE student SET tot_cred = tot_cred + <the course credits>
-        WHERE id = $1
+    if (courseRows.length === 0) {
+      throw new Error(`Course ${input.courseId} does not exist`);
+    }
 
-        SELECT tot_cred
-        FROM student
-        WHERE id = $1
+    const credits = Number(courseRows[0].credits);
 
-      EXCEPTION
-        WHEN OTHERS THEN
-          ROLLBACK TO safe
-        RAISE;
-      END;
-    `, [input["studentId"], input["courseId"], input["secId"], input["semester"], input["year"],], 
-  );
-  return rows[0];
+    // Record the enrolment.
+    await client.query(
+      `INSERT INTO takes (id, course_id, sec_id, semester, year, grade)
+       VALUES ($1, $2, $3, $4, $5, NULL)`,
+      [
+        input.studentId,
+        input.courseId,
+        input.secId,
+        input.semester,
+        input.year,
+      ],
+    );
+
+    // Add the course credits and retrieve the new total.
+    const { rows: studentRows } = await client.query<{ tot_cred: number }>(
+      `UPDATE student
+       SET tot_cred = tot_cred + $2
+       WHERE id = $1
+       RETURNING tot_cred`,
+      [input.studentId, credits],
+    );
+
+    if (studentRows.length === 0) {
+      throw new Error(`Student ${input.studentId} does not exist`);
+    }
+
+    const newTotal = Number(studentRows[0].tot_cred);
+
+    // Both changes succeeded, so save the transaction.
+    await client.query("COMMIT");
+
+    return newTotal;
+  } catch (error) {
+    // If anything failed, undo all changes made by this transaction.
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    // Always return the connection to the pool.
+    client.release();
+  }
 }
