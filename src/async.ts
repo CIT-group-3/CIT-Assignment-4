@@ -102,12 +102,22 @@ export async function removeAndCheckBroken(id: string): Promise<boolean> {
 }
 /*
 Explanation:
+a call for deleteStudent is sent but not waited for
+then findStudent is called and waits for a response, thus it returns before deleteStudent executes
+then the comparison happens with "old data" i.e. the situation before deleteStudent executes.
+there is no guarantee, and little chance deleteStudent even executes before removeAndCheckBroken returns its result.
 
+
+By simply waiting for deleteStudent to execute we ensure that the student is removed before anything else happens.
+
+In terms of the second problem, the solution should just be ensuring proper execution order. 
+If we know the code executes in the correct order then the boolean check which is returned should tell us whether the delete failed or not.
 */
-
 
 /** The same thing, correct: false when the student is really gone. */
 export async function removeAndCheck(id: string): Promise<boolean> {
-  // TODO
-  throw new Error('not implemented');
+  
+  await deleteStudent(id);
+  const still = await findStudent(id);
+  return still !== undefined;
 }
