@@ -82,8 +82,8 @@ console.timeEnd('together');            // about 200 ms
 //   the same three numbers, in a third of the time
 
 // --- Part C3, and tidying up ---
-// await pool.query("DELETE FROM takes WHERE id = '90000'");
-// console.log(await removeAndCheckBroken('90000'));         // true: still there
-// console.log(await removeAndCheck('90000'));               // false: really gone
+await pool.query("DELETE FROM takes WHERE id = '90000'");
+console.log(await removeAndCheckBroken('90000'));         // true: still there
+console.log(await removeAndCheck('90000'));               // false: really gone
 
 await pool.end();
