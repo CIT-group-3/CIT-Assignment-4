@@ -41,7 +41,6 @@ export async function listStudents(
   limit: number,
   offset: number,
 ): Promise<Student[]> {
-
   const { rows } = await pool.query<Student>(
     `SELECT id, name, dept_name AS "deptName", tot_cred::int AS "totCred"
      FROM student
@@ -54,25 +53,25 @@ export async function listStudents(
 
 /** One student, or undefined when there is no such id. */
 export async function findStudent(id: string): Promise<Student | undefined> {
-
-  const {rows} = await pool.query<Student>(
-    ` SELECT *
+  const { rows } = await pool.query<Student>(
+    ` SELECT id, name, dept_name AS "deptName", tot_cred::int AS "totCred"
       FROM student
       WHERE id = $1
-    `,[id],
+    `,
+    [id],
   );
   return rows[0] !== null ? rows[0] : undefined;
 }
 
 /** The students of one department, ordered by name. */
 export async function studentsIn(deptName: string): Promise<Student[]> {
-
   const { rows } = await pool.query<Student>(
     ` SELECT name
       FROM student
       WHERE dept_name = $1
       ORDER BY name
-    `,[deptName],
+    `,
+    [deptName],
   );
   return rows;
 }
@@ -90,13 +89,13 @@ export async function studentsIn(deptName: string): Promise<Student[]> {
  *     SELECT ..., danish_grade(t.grade) AS grade
  */
 export async function coursesFor(studentId: string): Promise<CourseRow[]> {
-
   const { rows } = await pool.query<CourseRow>(
     ` SELECT c.course_id, c.title, danish_grade(t.grade) AS grade
       FROM course as c join takes as t on c.course_id = t.course_id
       WHERE t.id = $1
       ORDER BY c.course_id
-    `, [studentId],
+    `,
+    [studentId],
   );
 
   return rows !== null ? rows : [];

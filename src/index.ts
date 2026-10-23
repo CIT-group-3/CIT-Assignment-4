@@ -95,17 +95,17 @@ console.log(
 console.log(await transcriptOf("00128"));
 //   two rows: CS-101 with 12, CS-347 with 10
 console.log(await transcriptOrUndefined("99999")); // undefined
-// try {
-//   await transcriptOf('99999');
-// } catch (err) {
-//   console.log('caught:', (err as Error).message);         // No student with id 99999
-// }
+try {
+  await transcriptOf("99999");
+} catch (err) {
+  console.log("caught:", (err as Error).message); // No student with id 99999
+}
 console.log(await enrolWithProcedure("90000", "CS-101", "1", "Fall", 2017));
 //   7   (3 from before, plus the 4 credits of CS-101)
 
 // --- Part C ---
-// console.log(await firstCourseTitle('00128'));             // Intro. to Computer Science
-// console.log(await firstCourseTitle('99999'));             // undefined
+console.log(await firstCourseTitle("00128")); // Intro. to Computer Science
+console.log(await firstCourseTitle("99999")); // undefined
 console.time("one after another");
 console.log(await overviewSlowly());
 console.timeEnd("one after another"); // about 600 ms
