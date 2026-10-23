@@ -44,9 +44,9 @@ export async function transcriptOrUndefined(
   try {
     return await transcriptOf(studentId);
   } catch (err) {
-    console.log("caught:", (err as Error).message);
+    if ((err as { code?: string }).code === "P0001") return undefined;
+    throw err;
   }
-  throw new Error("not implemented");
 }
 
 /**

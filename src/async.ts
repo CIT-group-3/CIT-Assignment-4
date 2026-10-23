@@ -1,7 +1,7 @@
 // Part C - asynchronous code against a real database
 
-import { pool } from './db.js';
-import { coursesFor, deleteStudent, findStudent } from './queries.js';
+import { pool } from "./db.js";
+import { coursesFor, deleteStudent, findStudent } from "./queries.js";
 
 export interface Overview {
   students: number;
@@ -18,9 +18,17 @@ export interface Overview {
  * Two steps, the second needing the first. Handle a missing student with
  * try/catch or with a check, and say in a comment which you chose and why.
  */
-export async function firstCourseTitle(studentId: string): Promise<string | undefined> {
-  // TODO
-  throw new Error('not implemented');
+export async function firstCourseTitle(
+  studentId: string,
+): Promise<string | undefined> {
+  // A check, not try/catch: findStudent returns undefined for a missing
+  // student instead of throwing, so there is no error to catch.
+  if ((await findStudent(studentId)) === undefined) {
+    return undefined;
+  }
+
+  const courses = await coursesFor(studentId);
+  return courses[0]?.title;
 }
 
 // --- C2. Steps that do not depend on each other ---------------------------
@@ -44,15 +52,15 @@ export async function firstCourseTitle(studentId: string): Promise<string | unde
 export async function overviewSlowly(): Promise<Overview> {
   // Run each query sequentially: each one finishes before the next starts.
   const students = await pool.query(
-    'SELECT pg_sleep(0.2), count(*)::int AS total FROM student',
+    "SELECT pg_sleep(0.2), count(*)::int AS total FROM student",
   );
 
   const courses = await pool.query(
-    'SELECT pg_sleep(0.2), count(*)::int AS total FROM course',
+    "SELECT pg_sleep(0.2), count(*)::int AS total FROM course",
   );
 
   const departments = await pool.query(
-    'SELECT pg_sleep(0.2), count(*)::int AS total FROM department',
+    "SELECT pg_sleep(0.2), count(*)::int AS total FROM department",
   );
 
   return {
@@ -65,15 +73,9 @@ export async function overviewSlowly(): Promise<Overview> {
 export async function overview(): Promise<Overview> {
   // Start all three independent queries together and wait for all of them.
   const [students, courses, departments] = await Promise.all([
-    pool.query(
-      'SELECT pg_sleep(0.2), count(*)::int AS total FROM student',
-    ),
-    pool.query(
-      'SELECT pg_sleep(0.2), count(*)::int AS total FROM course',
-    ),
-    pool.query(
-      'SELECT pg_sleep(0.2), count(*)::int AS total FROM department',
-    ),
+    pool.query("SELECT pg_sleep(0.2), count(*)::int AS total FROM student"),
+    pool.query("SELECT pg_sleep(0.2), count(*)::int AS total FROM course"),
+    pool.query("SELECT pg_sleep(0.2), count(*)::int AS total FROM department"),
   ]);
 
   return {
@@ -116,7 +118,6 @@ If we know the code executes in the correct order then the boolean check which i
 
 /** The same thing, correct: false when the student is really gone. */
 export async function removeAndCheck(id: string): Promise<boolean> {
-  
   await deleteStudent(id);
   const still = await findStudent(id);
   return still !== undefined;
