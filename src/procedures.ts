@@ -49,8 +49,44 @@ export async function transcriptOrUndefined(
  * Returns the new credit total.
  */
 export async function enrolWithProcedure(
-  studentId: string, courseId: string, secId: string,
-  semester: string, year: number): Promise<number> {
-  // TODO
-  throw new Error('not implemented');
+  studentId: string,
+  courseId: string,
+  secId: string,
+  semester: string,
+  year: number,
+): Promise<number> {
+  const check = await pool.query(`
+    SELECT EXISTS (
+      SELECT 1
+      FROM pg_proc
+      WHERE proname = 'enrol_student'
+        AND prokind = 'p'
+        AND pg_function_is_visible(oid)
+    ) AS procedure_exists
+  `);
+
+  if (!check.rows[0].procedure_exists) {
+    throw new Error(
+      "The procedure 'enrol_student' was not found. " +
+      "Please execute the B3 procedure from procedures.sql " +
+      "against the university database, then try again.",
+    );
+  }
+
+  const { rows } = await pool.query<{
+    new_total: string | number | null;
+  }>(
+    `CALL enrol_student($1, $2, $3, $4, $5, NULL)`,
+    [studentId, courseId, secId, semester, year],
+  );
+
+  const newTotal = rows[0]?.new_total;
+
+  if (newTotal === null || newTotal === undefined) {
+    throw new Error(
+      "The enrolment procedure did not return a credit total",
+    );
+  }
+
+  return Number(newTotal);
 }
