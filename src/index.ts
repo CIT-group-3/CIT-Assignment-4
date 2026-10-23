@@ -6,13 +6,13 @@
 
 import { pool } from "./db.js";
 import {
-  listStudents,
-  findStudent,
-  studentsIn,
   coursesFor,
-  studentsPerDepartment,
-  insertStudent,
   deleteStudent,
+  findStudent,
+  insertStudent,
+  listStudents,
+  studentsIn,
+  studentsPerDepartment,
 } from "./queries.js";
 import { enrolInTypeScript } from './transaction.js';
 // import { transcriptOf, transcriptOrUndefined, enrolWithProcedure } from './procedures.js';
@@ -42,11 +42,15 @@ console.log(await studentsPerDepartment());
 console.log(typeof (await studentsPerDepartment())[0].students); // number
 
 // --- Part B1: the transaction ---
-// console.log(await insertStudent(
-//   { id: '90000', name: 'Testperson', deptName: 'Music', totCred: 0 }));
+console.log(await insertStudent(
+  { id: '90000', name: 'Testperson', deptName: 'Music', totCred: 0 }));
 //   { id: '90000', name: 'Testperson', deptName: 'Music', totCred: 0 }
-// console.log(await enrolInTypeScript(
-//   { studentId: '90000', courseId: 'MU-199', secId: '1', semester: 'Spring', year: 2018 }));
+ console.log(await deleteStudent('90000'));
+//   true
+console.log(await insertStudent(
+  { id: '90000', name: 'Testperson', deptName: 'Music', totCred: 0 }));
+console.log(await enrolInTypeScript(
+  { studentId: '90000', courseId: 'MU-199', secId: '1', semester: 'Spring', year: 2018 }));
 //   3   (the credits of MU-199)
 
 // --- Part B2 and B3: the routines in the database ---

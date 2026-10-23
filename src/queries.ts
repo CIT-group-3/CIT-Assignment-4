@@ -117,19 +117,32 @@ export async function studentsPerDepartment(): Promise<DeptCount[]> {
     ORDER BY dept_name`,
   );
   return rows;
-  throw new Error("not implemented");
 }
 
 // --- A4. Writing ----------------------------------------------------------
 
 /** Stores a student and returns the row the database stored. */
+
 export async function insertStudent(student: Student): Promise<Student> {
-  // TODO
-  throw new Error("not implemented");
+  const { rows } = await pool.query<Student>(
+    `INSERT INTO student (id, name, dept_name, tot_cred)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, name,
+               dept_name AS "deptName",
+               tot_cred::int AS "totCred"`,
+    [student.id, student.name, student.deptName, student.totCred],
+  );
+
+  return rows[0];
 }
 
 /** True when a row was deleted, false when there was nothing to delete. */
 export async function deleteStudent(id: string): Promise<boolean> {
-  // TODO
-  throw new Error("not implemented");
+  const { rowCount } = await pool.query(
+    `DELETE FROM student
+     WHERE id = $1`,
+    [id],
+  );
+
+  return (rowCount ?? 0) > 0;
 }
