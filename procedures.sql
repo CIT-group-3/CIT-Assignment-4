@@ -33,10 +33,16 @@ CREATE OR REPLACE FUNCTION student_transcript(p_id varchar)
 RETURNS TABLE (course_id varchar, title varchar, grade varchar)
 LANGUAGE plpgsql AS $$
 BEGIN
-  -- TODO: raise an exception when there is no such student
+  IF NOT EXISTS (SELECT 1 FROM student WHERE id = p_id) THEN
+    RAISE EXCEPTION 'No student with id %', p_id;
+  END IF;
 
-  -- TODO: return the courses this student takes, with converted grades
-  --       RETURN QUERY SELECT ... ;
+  RETURN QUERY
+  SELECT course.course_id, course.title, danish_grade(takes.grade)
+  FROM takes 
+  JOIN course ON takes.course_id = course.course_id
+  WHERE takes.id = p_id
+  ORDER BY course.course_id;
   RETURN;
 END;
 $$;
