@@ -5,6 +5,7 @@
 // as often as you like.
 
 import { pool } from "./db.js";
+import { enrolWithProcedure, transcriptOf, transcriptOrUndefined } from './procedures.js';
 import {
   coursesFor,
   deleteStudent,
@@ -15,7 +16,6 @@ import {
   studentsPerDepartment,
 } from "./queries.js";
 import { enrolInTypeScript } from './transaction.js';
-// import { transcriptOf, transcriptOrUndefined, enrolWithProcedure } from './procedures.js';
 // import { firstCourseTitle, overview, overviewSlowly, removeAndCheckBroken, removeAndCheck } from './async.js';
 
 // Start from a known state, so this file can be run again after a failure.
@@ -55,8 +55,8 @@ console.log(await enrolInTypeScript(
 
 // --- Part B2 and B3: the routines in the database ---
 // First check that danish_grade, from the database exercises, is still there:
-// console.log((await pool.query(
-//   "SELECT danish_grade('A') AS a, danish_grade('C-') AS c, danish_grade(NULL) AS n")).rows[0]);
+console.log((await pool.query(
+   "SELECT danish_grade('A') AS a, danish_grade('C-') AS c, danish_grade(NULL) AS n")).rows[0]);
 //   { a: '12', c: '02', n: null }
 // console.log(await transcriptOf('00128'));
 //   two rows: CS-101 with 12, CS-347 with 10
@@ -66,7 +66,7 @@ console.log(await enrolInTypeScript(
 // } catch (err) {
 //   console.log('caught:', (err as Error).message);         // No student with id 99999
 // }
-// console.log(await enrolWithProcedure('90000', 'CS-101', '1', 'Fall', 2017));
+console.log(await enrolWithProcedure('90000', 'CS-101', '1', 'Fall', 2017));
 //   7   (3 from before, plus the 4 credits of CS-101)
 
 // --- Part C ---

@@ -64,13 +64,35 @@ CREATE OR REPLACE PROCEDURE enrol_student(
   p_sec_id varchar,
   p_semester varchar,
   p_year numeric,
-  INOUT new_total numeric DEFAULT NULL)
+  INOUT new_total numeric DEFAULT NULL
+)
 LANGUAGE plpgsql AS $$
 DECLARE
   v_credits numeric;
 BEGIN
-  -- TODO
-  NULL;
+  -- Find the credits for the requested course.
+  SELECT credits
+  INTO v_credits
+  FROM course
+  WHERE course_id = p_course_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'No course with id %', p_course_id;
+  END IF;
+
+  -- Insert the enrolment with a null grade.
+  INSERT INTO takes (id, course_id, sec_id, semester, year, grade)
+  VALUES (p_id, p_course_id, p_sec_id, p_semester, p_year, NULL);
+
+  -- Add the course credits and return the updated total.
+  UPDATE student
+  SET tot_cred = tot_cred + v_credits
+  WHERE id = p_id
+  RETURNING tot_cred INTO new_total;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'No student with id %', p_id;
+  END IF;
 END;
 $$;
 
