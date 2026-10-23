@@ -1,7 +1,7 @@
 // Part C - asynchronous code against a real database
 
 import { pool } from './db.js';
-import { findStudent, coursesFor, deleteStudent } from './queries.js';
+import { coursesFor, deleteStudent, findStudent } from './queries.js';
 
 export interface Overview {
   students: number;
@@ -42,13 +42,45 @@ export async function firstCourseTitle(studentId: string): Promise<string | unde
  * the difference visible, and on a real server the waiting is real.
  */
 export async function overviewSlowly(): Promise<Overview> {
-  // TODO
-  throw new Error('not implemented');
+  // Run each query sequentially: each one finishes before the next starts.
+  const students = await pool.query(
+    'SELECT pg_sleep(0.2), count(*)::int AS total FROM student',
+  );
+
+  const courses = await pool.query(
+    'SELECT pg_sleep(0.2), count(*)::int AS total FROM course',
+  );
+
+  const departments = await pool.query(
+    'SELECT pg_sleep(0.2), count(*)::int AS total FROM department',
+  );
+
+  return {
+    students: students.rows[0].total,
+    courses: courses.rows[0].total,
+    departments: departments.rows[0].total,
+  };
 }
 
 export async function overview(): Promise<Overview> {
-  // TODO
-  throw new Error('not implemented');
+  // Start all three independent queries together and wait for all of them.
+  const [students, courses, departments] = await Promise.all([
+    pool.query(
+      'SELECT pg_sleep(0.2), count(*)::int AS total FROM student',
+    ),
+    pool.query(
+      'SELECT pg_sleep(0.2), count(*)::int AS total FROM course',
+    ),
+    pool.query(
+      'SELECT pg_sleep(0.2), count(*)::int AS total FROM department',
+    ),
+  ]);
+
+  return {
+    students: students.rows[0].total,
+    courses: courses.rows[0].total,
+    departments: departments.rows[0].total,
+  };
 }
 
 // --- C3. The forgotten await ----------------------------------------------

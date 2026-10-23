@@ -4,6 +4,7 @@
 // line. The last block puts the database back as it was, so you can run this
 // as often as you like.
 
+import { firstCourseTitle, overview, overviewSlowly, removeAndCheck, removeAndCheckBroken } from './async.js';
 import { pool } from "./db.js";
 import { enrolWithProcedure, transcriptOf, transcriptOrUndefined } from './procedures.js';
 import {
@@ -16,7 +17,6 @@ import {
   studentsPerDepartment,
 } from "./queries.js";
 import { enrolInTypeScript } from './transaction.js';
-// import { firstCourseTitle, overview, overviewSlowly, removeAndCheckBroken, removeAndCheck } from './async.js';
 
 // Start from a known state, so this file can be run again after a failure.
 await pool.query("DELETE FROM takes WHERE id = '90000'");
@@ -72,12 +72,13 @@ console.log(await enrolWithProcedure('90000', 'CS-101', '1', 'Fall', 2017));
 // --- Part C ---
 // console.log(await firstCourseTitle('00128'));             // Intro. to Computer Science
 // console.log(await firstCourseTitle('99999'));             // undefined
-// console.time('one after another');
-// console.log(await overviewSlowly());
-// console.timeEnd('one after another');   // about 600 ms
-// console.time('together');
-// console.log(await overview());
-// console.timeEnd('together');            // about 200 ms
+console.time('one after another');
+console.log(await overviewSlowly());
+console.timeEnd('one after another');   // about 600 ms
+
+console.time('together');
+console.log(await overview());
+console.timeEnd('together');            // about 200 ms
 //   the same three numbers, in a third of the time
 
 // --- Part C3, and tidying up ---
